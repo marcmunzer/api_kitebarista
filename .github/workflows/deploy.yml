@@ -18,7 +18,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
-            cd ~/api_kitebarista
+            cd /var/app/api_kitebarista
             git pull origin master
             docker compose up -d --build
             docker image prune -f
