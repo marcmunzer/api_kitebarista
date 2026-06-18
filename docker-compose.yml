@@ -1,0 +1,37 @@
+﻿services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: kitebarista-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: kitebarista
+      POSTGRES_USER: kitebarista
+      POSTGRES_PASSWORD: kitebarista_secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./src/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kitebarista -d kitebarista"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    container_name: kitebarista-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+volumes:
+  postgres_data:
