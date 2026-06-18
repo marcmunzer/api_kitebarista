@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS sessions (
   date           DATE NOT NULL,
   start_time     TIME,
   end_time       TIME,
+  power          INTEGER CHECK (power BETWEEN -2 AND 2),
   user_id        INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   owned_kite_id  INTEGER NOT NULL REFERENCES owned_kites(id) ON DELETE RESTRICT,
   created_at     TIMESTAMPTZ DEFAULT NOW(),
