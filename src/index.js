@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 
+const migrate = require('./db/migrate');
 const usersRouter = require('./routes/users');
 const brandsRouter = require('./routes/brands');
 const kitesRouter = require('./routes/kites');
@@ -25,6 +26,13 @@ app.use('/api/sessions', sessionsRouter);
 
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-  console.log(`KiteBarista API running on port ${PORT}`);
-});
+migrate()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`KiteBarista API running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('Migration failed, server not started:', err.message);
+    process.exit(1);
+  });
