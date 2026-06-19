@@ -23,6 +23,22 @@ post() {
 echo "Seeding $BASE_URL ..."
 echo ""
 
+# ── Locations ─────────────────────────────────────────────────────────────────
+echo "Creating locations..."
+post locations '{"name":"Cabedelo de Viana","country":"Portugal","waves":true,"flatWater":false}' > /dev/null
+post locations '{"name":"Tarifa","country":"Spain","waves":true,"flatWater":false}' > /dev/null
+post locations '{"name":"Fuerteventura","country":"Spain","waves":true,"flatWater":false}' > /dev/null
+post locations '{"name":"Dakhla","country":"Morocco","waves":false,"flatWater":true}' > /dev/null
+post locations '{"name":"Essaouira","country":"Morocco","waves":true,"flatWater":false}' > /dev/null
+post locations '{"name":"El Gouna","country":"Egypt","waves":false,"flatWater":true}' > /dev/null
+post locations '{"name":"Cabarete","country":"Dominican Republic","waves":true,"flatWater":false}' > /dev/null
+post locations '{"name":"Cumbuco","country":"Brazil","waves":false,"flatWater":true}' > /dev/null
+post locations '{"name":"Mui Ne","country":"Vietnam","waves":false,"flatWater":false}' > /dev/null
+post locations '{"name":"Boa Vista","country":"Cape Verde","waves":true,"flatWater":false}' > /dev/null
+post locations '{"name":"Lake Garda","country":"Italy","waves":false,"flatWater":true}' > /dev/null
+post locations '{"name":"Hood River","country":"USA","waves":false,"flatWater":true}' > /dev/null
+echo "  Created 12 locations"
+
 # ── Brands ────────────────────────────────────────────────────────────────────
 echo "Creating brands..."
 CABRINHA=$(post brands '{"name":"Cabrinha","webpage":"https://www.cabrinha.com"}')
@@ -127,4 +143,4 @@ post sessions "{\"date\":\"2024-05-12\", \"start_time\":\"09:00\", \"end_time\":
 echo "  Created 12 sessions"
 echo ""
 echo "Done! Seeded:"
-echo "  5 brands, 12 kite models, 5 users, 9 owned kites, 12 sessions"
+echo "  12 locations, 5 brands, 12 kite models, 5 users, 9 owned kites, 12 sessions"
