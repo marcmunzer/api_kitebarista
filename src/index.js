@@ -18,6 +18,7 @@ app.use(cors());
 app.use(express.json());
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
+app.get('/api.yaml', (req, res) => res.sendFile('api.yaml', { root: '.' }));
 
 app.use('/api/users', usersRouter);
 app.use('/api/brands', brandsRouter);
