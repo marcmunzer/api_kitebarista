@@ -1,14 +1,31 @@
 #!/usr/bin/env bash
-# Usage: ./scripts/seed.sh [base_url]
+# Usage: ./scripts/seed.sh [--clean] [base_url]
+#   --clean   truncate all tables and reset sequences before seeding
 # Default base_url: http://localhost:3000
 
 set -e
 
-BASE_URL="${1:-http://localhost:3000}"
+CLEAN=false
+BASE_URL="http://localhost:3000"
+
+for arg in "$@"; do
+  case "$arg" in
+    --clean) CLEAN=true ;;
+    *)       BASE_URL="$arg" ;;
+  esac
+done
+
 API="$BASE_URL/api"
 
 command -v curl >/dev/null 2>&1 || { echo "curl is required but not installed."; exit 1; }
 command -v jq   >/dev/null 2>&1 || { echo "jq is required but not installed. Run: apt install jq"; exit 1; }
+
+if [ "$CLEAN" = true ]; then
+  echo "Cleaning database..."
+  docker compose exec -T postgres psql -U kitebarista -d kitebarista -c \
+    "TRUNCATE TABLE sessions, owned_kites, measurements, forecasts, kites, users, brands, locations RESTART IDENTITY CASCADE;"
+  echo "  Done."
+fi
 
 post() {
   local endpoint="$1"
