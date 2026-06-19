@@ -9,6 +9,7 @@ const kitesRouter = require('./routes/kites');
 const ownedKitesRouter = require('./routes/ownedKites');
 const sessionsRouter = require('./routes/sessions');
 const locationsRouter = require('./routes/locations');
+const forecastsRouter = require('./routes/forecasts');
 const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
@@ -26,6 +27,7 @@ app.use('/api/kites', kitesRouter);
 app.use('/api/owned-kites', ownedKitesRouter);
 app.use('/api/sessions', sessionsRouter);
 app.use('/api/locations', locationsRouter);
+app.use('/api/forecasts', forecastsRouter);
 
 app.use(errorHandler);
 

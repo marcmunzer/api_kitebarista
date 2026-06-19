@@ -18,6 +18,7 @@ tags:
   - name: Owned Kites
   - name: Sessions
   - name: Locations
+  - name: Forecasts
 
 paths:
 
@@ -647,6 +648,106 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  # ─── Forecasts ─────────────────────────────────────────────────────────────
+
+  /forecasts:
+    get:
+      summary: List all forecasts
+      tags: [Forecasts]
+      responses:
+        '200':
+          description: Array of forecasts ordered by time desc (includes location_name)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Forecast'
+    post:
+      summary: Create a forecast
+      tags: [Forecasts]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForecastInput'
+      responses:
+        '201':
+          description: Created forecast
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Forecast'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /forecasts/{id}:
+    parameters:
+      - $ref: '#/components/parameters/id'
+    get:
+      summary: Get a forecast
+      tags: [Forecasts]
+      responses:
+        '200':
+          description: Forecast object (includes location_name)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Forecast'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      summary: Replace a forecast (all fields required)
+      tags: [Forecasts]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForecastInput'
+      responses:
+        '200':
+          description: Updated forecast
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Forecast'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      summary: Partially update a forecast
+      tags: [Forecasts]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForecastPatch'
+      responses:
+        '200':
+          description: Updated forecast
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Forecast'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete a forecast
+      tags: [Forecasts]
+      responses:
+        '204':
+          description: Deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
 # ─── Components ──────────────────────────────────────────────────────────────
 
 components:
@@ -1142,3 +1243,124 @@ components:
           type: boolean
         flatWater:
           type: boolean
+
+    # ── Forecasts ──
+
+    Forecast:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        time:
+          type: string
+          format: date-time
+          example: '2024-07-15T10:00:00Z'
+        location_id:
+          type: integer
+          nullable: true
+          example: 1
+        location_name:
+          type: string
+          nullable: true
+          example: Tarifa
+        wind_speed:
+          type: number
+          nullable: true
+          example: 18.5
+        wind_direction:
+          type: integer
+          nullable: true
+          description: Degrees (0–360)
+          example: 270
+        wave_height:
+          type: number
+          nullable: true
+          example: 1.2
+        wave_direction:
+          type: integer
+          nullable: true
+          description: Degrees (0–360)
+          example: 285
+        tide:
+          type: number
+          nullable: true
+          example: 0.8
+        temperature:
+          type: number
+          nullable: true
+          example: 24.5
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ForecastInput:
+      type: object
+      required: [time]
+      properties:
+        time:
+          type: string
+          format: date-time
+          example: '2024-07-15T10:00:00Z'
+        location_id:
+          type: integer
+          nullable: true
+          example: 1
+        windSpeed:
+          type: number
+          nullable: true
+          example: 18.5
+        windDirection:
+          type: integer
+          nullable: true
+          description: Degrees (0–360)
+          example: 270
+        waveHeight:
+          type: number
+          nullable: true
+          example: 1.2
+        waveDirection:
+          type: integer
+          nullable: true
+          description: Degrees (0–360)
+          example: 285
+        tide:
+          type: number
+          nullable: true
+          example: 0.8
+        temperature:
+          type: number
+          nullable: true
+          example: 24.5
+
+    ForecastPatch:
+      type: object
+      minProperties: 1
+      properties:
+        time:
+          type: string
+          format: date-time
+        location_id:
+          type: integer
+          nullable: true
+        windSpeed:
+          type: number
+          nullable: true
+        windDirection:
+          type: integer
+          nullable: true
+        waveHeight:
+          type: number
+          nullable: true
+        waveDirection:
+          type: integer
+          nullable: true
+        tide:
+          type: number
+          nullable: true
+        temperature:
+          type: number
+          nullable: true
