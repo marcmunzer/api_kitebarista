@@ -1,0 +1,9 @@
+CREATE TABLE locations (
+  id          SERIAL PRIMARY KEY,
+  name        VARCHAR(255) NOT NULL,
+  country     VARCHAR(255) NOT NULL,
+  waves       BOOLEAN NOT NULL DEFAULT FALSE,
+  flat_water  BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at  TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at  TIMESTAMP NOT NULL DEFAULT NOW()
+);

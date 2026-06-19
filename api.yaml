@@ -1,0 +1,1144 @@
+openapi: 3.0.3
+info:
+  title: KiteBarista API
+  version: 1.0.0
+  description: >
+    REST API for the KiteBarista kite surfing session tracker.
+    All requests and responses use JSON. Timestamps are returned in ISO 8601 format.
+
+servers:
+  - url: http://localhost:3000/api
+    description: Local development
+
+tags:
+  - name: Health
+  - name: Users
+  - name: Brands
+  - name: Kites
+  - name: Owned Kites
+  - name: Sessions
+  - name: Locations
+
+paths:
+
+  # ─── Health ────────────────────────────────────────────────────────────────
+
+  /health:
+    get:
+      summary: Health check
+      tags: [Health]
+      responses:
+        '200':
+          description: API is running
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  # ─── Users ─────────────────────────────────────────────────────────────────
+
+  /users:
+    get:
+      summary: List all users
+      tags: [Users]
+      responses:
+        '200':
+          description: Array of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+    post:
+      summary: Create a user
+      tags: [Users]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+      responses:
+        '201':
+          description: Created user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /users/{id}:
+    parameters:
+      - $ref: '#/components/parameters/id'
+    get:
+      summary: Get a user
+      tags: [Users]
+      responses:
+        '200':
+          description: User object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      summary: Replace a user (all fields required)
+      tags: [Users]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+      responses:
+        '200':
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    patch:
+      summary: Partially update a user
+      tags: [Users]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPatch'
+      responses:
+        '200':
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete a user
+      tags: [Users]
+      responses:
+        '204':
+          description: Deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ─── Brands ────────────────────────────────────────────────────────────────
+
+  /brands:
+    get:
+      summary: List all brands
+      tags: [Brands]
+      responses:
+        '200':
+          description: Array of brands
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Brand'
+    post:
+      summary: Create a brand
+      tags: [Brands]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BrandInput'
+      responses:
+        '201':
+          description: Created brand
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Brand'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /brands/{id}:
+    parameters:
+      - $ref: '#/components/parameters/id'
+    get:
+      summary: Get a brand
+      tags: [Brands]
+      responses:
+        '200':
+          description: Brand object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Brand'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      summary: Replace a brand (all fields required)
+      tags: [Brands]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BrandInput'
+      responses:
+        '200':
+          description: Updated brand
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Brand'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    patch:
+      summary: Partially update a brand
+      tags: [Brands]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BrandPatch'
+      responses:
+        '200':
+          description: Updated brand
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Brand'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete a brand
+      tags: [Brands]
+      responses:
+        '204':
+          description: Deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  # ─── Kites ─────────────────────────────────────────────────────────────────
+
+  /kites:
+    get:
+      summary: List all kite models
+      tags: [Kites]
+      responses:
+        '200':
+          description: Array of kites (includes brand_name)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Kite'
+    post:
+      summary: Create a kite model
+      tags: [Kites]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KiteInput'
+      responses:
+        '201':
+          description: Created kite
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Kite'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /kites/{id}:
+    parameters:
+      - $ref: '#/components/parameters/id'
+    get:
+      summary: Get a kite model
+      tags: [Kites]
+      responses:
+        '200':
+          description: Kite object (includes brand_name)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Kite'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      summary: Replace a kite model (all fields required)
+      tags: [Kites]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KiteInput'
+      responses:
+        '200':
+          description: Updated kite
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Kite'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      summary: Partially update a kite model
+      tags: [Kites]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KitePatch'
+      responses:
+        '200':
+          description: Updated kite
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Kite'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete a kite model
+      tags: [Kites]
+      responses:
+        '204':
+          description: Deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  # ─── Owned Kites ───────────────────────────────────────────────────────────
+
+  /owned-kites:
+    get:
+      summary: List all owned kites
+      tags: [Owned Kites]
+      responses:
+        '200':
+          description: Array of owned kites (includes user_name, brand_name, kite_name, year, size)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OwnedKite'
+    post:
+      summary: Record a kite ownership
+      tags: [Owned Kites]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OwnedKiteInput'
+      responses:
+        '201':
+          description: Created owned kite
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OwnedKite'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /owned-kites/{id}:
+    parameters:
+      - $ref: '#/components/parameters/id'
+    get:
+      summary: Get an owned kite
+      tags: [Owned Kites]
+      responses:
+        '200':
+          description: Owned kite object (includes user_name, brand_name, kite_name, year, size)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OwnedKite'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      summary: Replace an owned kite (all fields required)
+      tags: [Owned Kites]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OwnedKiteInput'
+      responses:
+        '200':
+          description: Updated owned kite
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OwnedKite'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      summary: Partially update an owned kite
+      tags: [Owned Kites]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OwnedKitePatch'
+      responses:
+        '200':
+          description: Updated owned kite
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OwnedKite'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete an owned kite
+      tags: [Owned Kites]
+      responses:
+        '204':
+          description: Deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  # ─── Sessions ──────────────────────────────────────────────────────────────
+
+  /sessions:
+    get:
+      summary: List all sessions
+      tags: [Sessions]
+      responses:
+        '200':
+          description: Array of sessions ordered by date desc (includes user_name, kite_name, brand_name, location_name)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Session'
+    post:
+      summary: Create a session
+      tags: [Sessions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionInput'
+      responses:
+        '201':
+          description: Created session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /sessions/{id}:
+    parameters:
+      - $ref: '#/components/parameters/id'
+    get:
+      summary: Get a session
+      tags: [Sessions]
+      responses:
+        '200':
+          description: Session object (includes user_name, kite_name, brand_name, location_name)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      summary: Replace a session (all fields required)
+      tags: [Sessions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionInput'
+      responses:
+        '200':
+          description: Updated session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      summary: Partially update a session
+      tags: [Sessions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionPatch'
+      responses:
+        '200':
+          description: Updated session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete a session
+      tags: [Sessions]
+      responses:
+        '204':
+          description: Deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ─── Locations ─────────────────────────────────────────────────────────────
+
+  /locations:
+    get:
+      summary: List all locations
+      tags: [Locations]
+      responses:
+        '200':
+          description: Array of locations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Location'
+    post:
+      summary: Create a location
+      tags: [Locations]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LocationInput'
+      responses:
+        '201':
+          description: Created location
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /locations/{id}:
+    parameters:
+      - $ref: '#/components/parameters/id'
+    get:
+      summary: Get a location
+      tags: [Locations]
+      responses:
+        '200':
+          description: Location object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      summary: Replace a location (all fields required)
+      tags: [Locations]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LocationInput'
+      responses:
+        '200':
+          description: Updated location
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      summary: Partially update a location
+      tags: [Locations]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LocationPatch'
+      responses:
+        '200':
+          description: Updated location
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete a location
+      tags: [Locations]
+      responses:
+        '204':
+          description: Deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+# ─── Components ──────────────────────────────────────────────────────────────
+
+components:
+
+  parameters:
+    id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+
+  responses:
+    BadRequest:
+      description: Missing or invalid fields
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: name is required.
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: User not found.
+    Conflict:
+      description: Unique constraint or foreign key violation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Conflict.
+
+  schemas:
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+
+    # ── Users ──
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Alex Rider
+        email:
+          type: string
+          format: email
+          example: alex@example.com
+        skill_level:
+          type: integer
+          minimum: 1
+          maximum: 5
+          example: 3
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    UserInput:
+      type: object
+      required: [name, email, skill_level]
+      properties:
+        name:
+          type: string
+          example: Alex Rider
+        email:
+          type: string
+          format: email
+          example: alex@example.com
+        skill_level:
+          type: integer
+          minimum: 1
+          maximum: 5
+          example: 3
+
+    UserPatch:
+      type: object
+      minProperties: 1
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        skill_level:
+          type: integer
+          minimum: 1
+          maximum: 5
+
+    # ── Brands ──
+
+    Brand:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Cabrinha
+        webpage:
+          type: string
+          nullable: true
+          example: https://www.cabrinha.com
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    BrandInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          example: Cabrinha
+        webpage:
+          type: string
+          nullable: true
+          example: https://www.cabrinha.com
+
+    BrandPatch:
+      type: object
+      minProperties: 1
+      properties:
+        name:
+          type: string
+        webpage:
+          type: string
+          nullable: true
+
+    # ── Kites ──
+
+    Kite:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        brand_id:
+          type: integer
+          example: 1
+        brand_name:
+          type: string
+          example: Cabrinha
+        name:
+          type: string
+          example: Switchblade
+        year:
+          type: integer
+          nullable: true
+          example: 2023
+        size:
+          type: number
+          nullable: true
+          example: 12
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    KiteInput:
+      type: object
+      required: [brand_id, name]
+      properties:
+        brand_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Switchblade
+        year:
+          type: integer
+          nullable: true
+          example: 2023
+        size:
+          type: number
+          nullable: true
+          example: 12
+
+    KitePatch:
+      type: object
+      minProperties: 1
+      properties:
+        brand_id:
+          type: integer
+        name:
+          type: string
+        year:
+          type: integer
+          nullable: true
+        size:
+          type: number
+          nullable: true
+
+    # ── Owned Kites ──
+
+    OwnedKite:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        user_id:
+          type: integer
+          example: 1
+        user_name:
+          type: string
+          example: Alex Rider
+        brand_id:
+          type: integer
+          example: 1
+        brand_name:
+          type: string
+          example: Cabrinha
+        kite_id:
+          type: integer
+          example: 1
+        kite_name:
+          type: string
+          example: Switchblade
+        year:
+          type: integer
+          nullable: true
+          example: 2023
+        size:
+          type: number
+          nullable: true
+          example: 12
+        purchased_date:
+          type: string
+          format: date
+          nullable: true
+          example: '2023-04-01'
+        sold_date:
+          type: string
+          format: date
+          nullable: true
+          example: null
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    OwnedKiteInput:
+      type: object
+      required: [user_id, brand_id, kite_id]
+      properties:
+        user_id:
+          type: integer
+          example: 1
+        brand_id:
+          type: integer
+          example: 1
+        kite_id:
+          type: integer
+          example: 1
+        purchased_date:
+          type: string
+          format: date
+          nullable: true
+          example: '2023-04-01'
+        sold_date:
+          type: string
+          format: date
+          nullable: true
+          example: null
+
+    OwnedKitePatch:
+      type: object
+      minProperties: 1
+      properties:
+        user_id:
+          type: integer
+        brand_id:
+          type: integer
+        kite_id:
+          type: integer
+        purchased_date:
+          type: string
+          format: date
+          nullable: true
+        sold_date:
+          type: string
+          format: date
+          nullable: true
+
+    # ── Sessions ──
+
+    Session:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        date:
+          type: string
+          format: date
+          example: '2024-07-15'
+        start_time:
+          type: string
+          format: time
+          nullable: true
+          example: '10:00:00'
+        end_time:
+          type: string
+          format: time
+          nullable: true
+          example: '13:30:00'
+        power:
+          type: integer
+          minimum: -2
+          maximum: 2
+          nullable: true
+          description: Wind power rating from -2 (very light) to 2 (very strong)
+          example: 1
+        user_id:
+          type: integer
+          example: 1
+        user_name:
+          type: string
+          example: Alex Rider
+        owned_kite_id:
+          type: integer
+          example: 1
+        kite_id:
+          type: integer
+          example: 1
+        kite_name:
+          type: string
+          example: Switchblade
+        size:
+          type: number
+          nullable: true
+          example: 12
+        brand_name:
+          type: string
+          example: Cabrinha
+        location_id:
+          type: integer
+          nullable: true
+          example: 2
+        location_name:
+          type: string
+          nullable: true
+          example: Tarifa
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    SessionInput:
+      type: object
+      required: [date, user_id, owned_kite_id]
+      properties:
+        date:
+          type: string
+          format: date
+          example: '2024-07-15'
+        start_time:
+          type: string
+          format: time
+          nullable: true
+          example: '10:00:00'
+        end_time:
+          type: string
+          format: time
+          nullable: true
+          example: '13:30:00'
+        power:
+          type: integer
+          minimum: -2
+          maximum: 2
+          nullable: true
+          example: 1
+        user_id:
+          type: integer
+          example: 1
+        owned_kite_id:
+          type: integer
+          example: 1
+        location_id:
+          type: integer
+          nullable: true
+          example: 2
+
+    SessionPatch:
+      type: object
+      minProperties: 1
+      properties:
+        date:
+          type: string
+          format: date
+        start_time:
+          type: string
+          format: time
+          nullable: true
+        end_time:
+          type: string
+          format: time
+          nullable: true
+        power:
+          type: integer
+          minimum: -2
+          maximum: 2
+          nullable: true
+        user_id:
+          type: integer
+        owned_kite_id:
+          type: integer
+        location_id:
+          type: integer
+          nullable: true
+
+    # ── Locations ──
+
+    Location:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Tarifa
+        country:
+          type: string
+          example: Spain
+        waves:
+          type: boolean
+          example: true
+        flat_water:
+          type: boolean
+          example: false
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    LocationInput:
+      type: object
+      required: [name, country]
+      properties:
+        name:
+          type: string
+          example: Tarifa
+        country:
+          type: string
+          example: Spain
+        waves:
+          type: boolean
+          default: false
+          example: true
+        flatWater:
+          type: boolean
+          default: false
+          example: false
+
+    LocationPatch:
+      type: object
+      minProperties: 1
+      properties:
+        name:
+          type: string
+        country:
+          type: string
+        waves:
+          type: boolean
+        flatWater:
+          type: boolean

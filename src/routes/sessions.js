@@ -9,12 +9,14 @@ router.get('/', async (req, res, next) => {
               u.name  AS user_name,
               ok.kite_id,
               k.name  AS kite_name, k.size,
-              b.name  AS brand_name
+              b.name  AS brand_name,
+              l.name  AS location_name
        FROM sessions s
        JOIN users       u  ON u.id  = s.user_id
        JOIN owned_kites ok ON ok.id = s.owned_kite_id
        JOIN kites       k  ON k.id  = ok.kite_id
        JOIN brands      b  ON b.id  = ok.brand_id
+       LEFT JOIN locations l ON l.id = s.location_id
        ORDER BY s.date DESC, s.start_time DESC`
     );
     res.json(rows);
@@ -30,12 +32,14 @@ router.get('/:id', async (req, res, next) => {
               u.name  AS user_name,
               ok.kite_id,
               k.name  AS kite_name, k.size,
-              b.name  AS brand_name
+              b.name  AS brand_name,
+              l.name  AS location_name
        FROM sessions s
        JOIN users       u  ON u.id  = s.user_id
        JOIN owned_kites ok ON ok.id = s.owned_kite_id
        JOIN kites       k  ON k.id  = ok.kite_id
        JOIN brands      b  ON b.id  = ok.brand_id
+       LEFT JOIN locations l ON l.id = s.location_id
        WHERE s.id=$1`,
       [req.params.id]
     );
@@ -47,15 +51,15 @@ router.get('/:id', async (req, res, next) => {
 });
 
 router.post('/', async (req, res, next) => {
-  const { date, start_time, end_time, power, user_id, owned_kite_id } = req.body;
+  const { date, start_time, end_time, power, user_id, owned_kite_id, location_id } = req.body;
   if (!date || !user_id || !owned_kite_id) {
     return res.status(400).json({ error: 'date, user_id, and owned_kite_id are required.' });
   }
   try {
     const { rows } = await db.query(
-      `INSERT INTO sessions (date, start_time, end_time, power, user_id, owned_kite_id)
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [date, start_time || null, end_time || null, power ?? null, user_id, owned_kite_id]
+      `INSERT INTO sessions (date, start_time, end_time, power, user_id, owned_kite_id, location_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [date, start_time || null, end_time || null, power ?? null, user_id, owned_kite_id, location_id ?? null]
     );
     res.status(201).json(rows[0]);
   } catch (err) {
@@ -64,16 +68,16 @@ router.post('/', async (req, res, next) => {
 });
 
 router.put('/:id', async (req, res, next) => {
-  const { date, start_time, end_time, power, user_id, owned_kite_id } = req.body;
+  const { date, start_time, end_time, power, user_id, owned_kite_id, location_id } = req.body;
   if (!date || !user_id || !owned_kite_id) {
     return res.status(400).json({ error: 'date, user_id, and owned_kite_id are required.' });
   }
   try {
     const { rows } = await db.query(
       `UPDATE sessions
-       SET date=$1, start_time=$2, end_time=$3, power=$4, user_id=$5, owned_kite_id=$6, updated_at=NOW()
-       WHERE id=$7 RETURNING *`,
-      [date, start_time || null, end_time || null, power ?? null, user_id, owned_kite_id, req.params.id]
+       SET date=$1, start_time=$2, end_time=$3, power=$4, user_id=$5, owned_kite_id=$6, location_id=$7, updated_at=NOW()
+       WHERE id=$8 RETURNING *`,
+      [date, start_time || null, end_time || null, power ?? null, user_id, owned_kite_id, location_id ?? null, req.params.id]
     );
     if (!rows.length) return res.status(404).json({ error: 'Session not found.' });
     res.json(rows[0]);
@@ -83,7 +87,7 @@ router.put('/:id', async (req, res, next) => {
 });
 
 router.patch('/:id', async (req, res, next) => {
-  const fields = ['date', 'start_time', 'end_time', 'power', 'user_id', 'owned_kite_id'];
+  const fields = ['date', 'start_time', 'end_time', 'power', 'user_id', 'owned_kite_id', 'location_id'];
   const updates = [];
   const values = [];
   fields.forEach((f) => {

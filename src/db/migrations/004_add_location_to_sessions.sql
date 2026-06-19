@@ -1,0 +1,2 @@
+ALTER TABLE sessions
+  ADD COLUMN location_id INTEGER REFERENCES locations(id) ON DELETE SET NULL;
