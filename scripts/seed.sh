@@ -25,7 +25,8 @@ echo ""
 
 # ── Locations ─────────────────────────────────────────────────────────────────
 echo "Creating locations..."
-post locations '{"name":"Cabedelo de Viana","country":"Portugal","waves":true,"flatWater":false}' > /dev/null
+LOC_CABEDELO=$(post locations '{"name":"Cabedelo de Viana","country":"Portugal","waves":true,"flatWater":false}')
+ID_CABEDELO=$(echo "$LOC_CABEDELO" | jq -r '.id')
 post locations '{"name":"Tarifa","country":"Spain","waves":true,"flatWater":false}' > /dev/null
 post locations '{"name":"Fuerteventura","country":"Spain","waves":true,"flatWater":false}' > /dev/null
 post locations '{"name":"Dakhla","country":"Morocco","waves":false,"flatWater":true}' > /dev/null
@@ -37,7 +38,7 @@ post locations '{"name":"Mui Ne","country":"Vietnam","waves":false,"flatWater":f
 post locations '{"name":"Boa Vista","country":"Cape Verde","waves":true,"flatWater":false}' > /dev/null
 post locations '{"name":"Lake Garda","country":"Italy","waves":false,"flatWater":true}' > /dev/null
 post locations '{"name":"Hood River","country":"USA","waves":false,"flatWater":true}' > /dev/null
-echo "  Created 12 locations"
+echo "  Created 12 locations (Cabedelo de Viana id=$ID_CABEDELO)"
 
 # ── Brands ────────────────────────────────────────────────────────────────────
 echo "Creating brands..."
@@ -141,6 +142,65 @@ post sessions "{\"date\":\"2024-05-05\", \"start_time\":\"08:00\", \"end_time\":
 post sessions "{\"date\":\"2024-05-12\", \"start_time\":\"09:00\", \"end_time\":\"12:30\", \"power\":-1, \"user_id\":$ID_U5, \"owned_kite_id\":$ID_O9}" > /dev/null
 
 echo "  Created 12 sessions"
+
+# ── Forecasts & Measurements — Cabedelo de Viana (3 days, hourly) ─────────────
+# Typical June nortada (NNW): builds through the morning, peaks mid-afternoon.
+# Wind speed in knots, wave height derived from wind, semi-diurnal Atlantic tide.
+
+# 24-hour wind speed pattern (knots)
+WS=(8 7 7 7 8 10 13 16 18 21 23 24 25 24 23 21 19 17 15 13 11 9 8 8)
+# Wind direction (°, NNW)
+WD=(348 347 346 345 346 348 350 352 352 350 347 344 341 341 343 346 349 351 352 351 349 348 348 348)
+# Wave direction (°, NW Atlantic swell)
+WAVED=(322 321 320 320 321 322 323 324 324 323 321 318 316 316 318 320 323 324 324 323 322 321 321 322)
+# Air temperature (°C)
+TEMP=(17 17 17 17 17 18 18 19 20 21 22 22 22 22 21 21 20 20 19 18 18 18 17 17)
+
+DATES=("2026-06-18" "2026-06-19" "2026-06-20")
+
+echo "Creating forecasts for Cabedelo de Viana..."
+for d in 0 1 2; do
+  date="${DATES[$d]}"
+  for h in $(seq 0 23); do
+    total_h=$((d * 24 + h))
+    hpad=$(printf '%02d' $h)
+    ws=${WS[$h]}
+    wd=${WD[$h]}
+    waved=${WAVED[$h]}
+    tmp=${TEMP[$h]}
+    wave_h=$(awk "BEGIN {printf \"%.2f\", 0.35 + ${ws} * 0.055}")
+    tide=$(awk "BEGIN {printf \"%.2f\", 2.00 + 1.20 * cos(2 * 3.14159265 * ${total_h} / 12.42)}")
+    post forecasts "{\"time\":\"${date}T${hpad}:00:00\",\"location_id\":${ID_CABEDELO},\"windSpeed\":${ws},\"windDirection\":${wd},\"waveHeight\":${wave_h},\"waveDirection\":${waved},\"tide\":${tide},\"temperature\":${tmp}}" > /dev/null
+  done
+  echo "  Forecasts done: ${date}"
+done
+
+# Wind offsets per day for measurements (actual observations deviate from forecast)
+M_WS_OFFSET=(1 2 -1)
+M_WH_OFFSET=("0.05" "0.12" "-0.06")
+M_TIDE_OFFSET=("0.03" "-0.02" "0.05")
+
+echo "Creating measurements for Cabedelo de Viana..."
+for d in 0 1 2; do
+  date="${DATES[$d]}"
+  ws_off=${M_WS_OFFSET[$d]}
+  wh_off=${M_WH_OFFSET[$d]}
+  tide_off=${M_TIDE_OFFSET[$d]}
+  for h in $(seq 0 23); do
+    total_h=$((d * 24 + h))
+    hpad=$(printf '%02d' $h)
+    ws=$((${WS[$h]} + ws_off))
+    wd=${WD[$h]}
+    waved=${WAVED[$h]}
+    tmp=${TEMP[$h]}
+    wave_h=$(awk "BEGIN {printf \"%.2f\", 0.35 + ${WS[$h]} * 0.055 + ${wh_off}}")
+    tide=$(awk "BEGIN {printf \"%.2f\", 2.00 + 1.20 * cos(2 * 3.14159265 * ${total_h} / 12.42) + ${tide_off}}")
+    post measurements "{\"time\":\"${date}T${hpad}:00:00\",\"location_id\":${ID_CABEDELO},\"windSpeed\":${ws},\"windDirection\":${wd},\"waveHeight\":${wave_h},\"waveDirection\":${waved},\"tide\":${tide},\"temperature\":${tmp}}" > /dev/null
+  done
+  echo "  Measurements done: ${date}"
+done
+
 echo ""
 echo "Done! Seeded:"
 echo "  12 locations, 5 brands, 12 kite models, 5 users, 9 owned kites, 12 sessions"
+echo "  72 forecasts + 72 measurements for Cabedelo de Viana (18–20 Jun 2026, hourly)"
